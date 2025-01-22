@@ -1,4 +1,9 @@
-***SETUP AND CONFIGURE OF KEYVAULT*** 
+https://learn.microsoft.com/en-us/azure/aks/csi-secrets-store-identity-access?tabs=azure-portal&pivots=access-with-a-microsoft-entra-workload-identity
+
+https://github.com/Aatishsharma77/Azure/blob/main/SecretProviderClass/setup.md
+
+
+**SETUP AND CONFIGURE OF KEYVAULT** 
 ---
 
 **Create Azure Resource Group**
@@ -8,7 +13,7 @@ az group create --name keyvault-demo --location eastus
 
 **AKS Creation and Configuration**
 
-*Create an AKS cluster with Azure Key Vault provider for Secrets Store CSI Driver support*
+Create an AKS cluster with Azure Key Vault provider for Secrets Store CSI Driver support
 
 ```
 az aks create --name keyvault-demo-cluster -g keyvault-demo --node-count 1 --enable-addons azure-keyvault-secrets-provider --enable-oidc-issuer --enable-workload-identity
@@ -35,7 +40,7 @@ NOTE: After create keyvault -> Go to Secret, Key -> You see authorization issue 
 
 ```
 
-***Connect your Azure ID to the Azure Key Vault Secrets Store CSI Driver***
+**Connect your Azure ID to the Azure Key Vault Secrets Store CSI Driver**
 ---
 
 **Configure workload identity**
