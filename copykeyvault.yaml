@@ -1,0 +1,56 @@
+trigger: none  # or specify your trigger
+
+variables:
+  sourceSubscription: '<source-subscription-id>'
+  descriptionSubscription: '<destination-subscription-id>'
+  sourceVaultName: '<source-keyvault-name>'
+  destVaultName: '<destination-keyvault-name>'
+
+stages:
+  - stage: CopySecrets
+    jobs:
+      - job: CopySecretsJob
+        displayName: 'Copy secrets between Key Vaults'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: AzureCLI@2
+            name: CopySecrets
+            inputs:
+              azureSubscription: '<your-service-connection-name>' # Replace with your Azure service connection name
+              scriptType: 'pscore'  # PowerShell Core (cross-platform)
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                $ErrorActionPreference = "Stop"
+
+                $sourceSubscription = '$(sourceSubscription)'
+                $descriptionSubscription = '$(descriptionSubscription)'
+                $sourceVaultName = '$(sourceVaultName)'
+                $destVaultName = '$(destVaultName)'
+
+                if ($sourceSubscription) {
+                    az account set --subscription $sourceSubscription
+                }
+
+                Write-Host "Reading secret names from $sourceVaultName"
+                $secretNames = az keyvault secret list --vault-name $sourceVaultName -o json --query "[].name" | ConvertFrom-Json
+
+                Write-Host "Reading secret values"
+                $secrets = foreach ($name in $secretNames) {
+                    $secret = az keyvault secret show --name $name --vault-name $sourceVaultName -o json | ConvertFrom-Json
+                    [PSCustomObject]@{
+                        name  = $name
+                        value = $secret.value
+                    }
+                }
+
+                Write-Host "Writing secrets to $destVaultName"
+                if ($descriptionSubscription) {
+                    az account set --subscription $descriptionSubscription
+                }
+
+                foreach ($s in $secrets) {
+                    az keyvault secret set --vault-name $destVaultName --name $s.name --value $s.value
+                }
+
+            displayName: 'Copy Key Vault Secrets (Linux Agent)'
